@@ -1,39 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:myapp/pages/first_page.dart';
+import 'package:myapp/pages/home_page.dart';
+import 'package:myapp/pages/settings_page.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
-
-  List names = ["Test1", "Test2", "test3"];
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context){
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Color.fromARGB(255, 255, 200, 100),
-        appBar: AppBar(
-          title: Text("This is my Appbar"),
-          backgroundColor: Color.fromARGB(255, 255, 200, 0),
-          elevation: 0,
-          leading: Icon(Icons.menu),
-          actions: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.logout, color: Colors.black,))
-          ],
-          ),
-        body: Center(
-          child: Container(
-            height: 300,
-            width:300,
-            color: Colors.yellow,
-            child: Center(child: Text("Tap me")),
-          ),
-        )
-      )
+      home: FirstPage(),
+      routes: {
+        '/firstpage': (context) => FirstPage(),
+        '/homepage': (context) => HomePage(),
+        '/settingspage': (context) => SettingsPage()
+      },
     );
   }
 }
