@@ -1,5 +1,3 @@
-import "package:flutter/material.dart";
-
 class ItemRepository {
   static final ItemRepository _singleton = ItemRepository._internal();
 

@@ -36,6 +36,17 @@ class _FavoritesPageState extends State<FavoritesPage> {
     });
   }
 
+  void _addGlass(String name, String brewery, int amount, double rating) {
+    setState(() {
+      displayedItems.add({
+        'name': name,
+        'brewery': brewery,
+        'amount': amount,
+        'rating': rating,
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +80,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const AddItemScreen()),
+          MaterialPageRoute(
+            builder: (context) => AddItemScreen(
+              addGlassCallback: _addGlass,
+            ),
+          ),
         ).then((_) => setState(() {
           displayedItems = ItemRepository().getItems();
         })),

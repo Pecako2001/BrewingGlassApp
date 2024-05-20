@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:myapp/pages/item_repos.dart'; // Make sure this is added to your pubspec.yaml
 
 class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({Key? key}) : super(key: key);
+  final Function(String, String, int, double) addGlassCallback;
+
+  const AddItemScreen({Key? key, required this.addGlassCallback}) : super(key: key);
 
   @override
   _AddItemScreenState createState() => _AddItemScreenState();
@@ -14,6 +15,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _nameController = TextEditingController();
   final _breweryController = TextEditingController();
   final _amountController = TextEditingController();
+  final _ratingController = TextEditingController();
   XFile? _image;
 
   @override
@@ -21,6 +23,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _nameController.dispose();
     _breweryController.dispose();
     _amountController.dispose();
+    _ratingController.dispose();
     super.dispose();
   }
 
@@ -40,91 +43,103 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _addItem() {
     if (_formKey.currentState!.validate()) {
-      ItemRepository().addItem({
-        'name': _nameController.text,
-        'brewery': _breweryController.text,
-        'amount': _amountController.text,
-        'image': _image?.path
-      });
+      widget.addGlassCallback(
+        _nameController.text,
+        _breweryController.text,
+        int.parse(_amountController.text),
+        double.parse(_ratingController.text),
+      );
 
-      Navigator.pop(context);  // Optionally pop after adding an item
+      Navigator.pop(context); // Close the bottom sheet
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Item'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name of the Glass',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the name of the glass';
-                  }
-                  return null;
-                },
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name of the Glass',
               ),
-              TextFormField(
-                controller: _breweryController,
-                decoration: const InputDecoration(
-                  labelText: 'Brewery of the Glass',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the brewery';
-                  }
-                  return null;
-                },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter the name of the glass';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _breweryController,
+              decoration: const InputDecoration(
+                labelText: 'Brewery of the Glass',
               ),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Amount You Have',
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the amount';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter the brewery';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Amount You Have',
               ),
-              const SizedBox(height: 20),
-              _image == null
-                  ? ElevatedButton(
-                      onPressed: _pickImage,
-                      child: const Text('Add a Photo'),
-                    )
-                  : Column(
-                      children: [
-                        Image.network(_image!.path, width: 100, height: 100, fit: BoxFit.cover),
-                        ElevatedButton(
-                          onPressed: _pickImage,
-                          child: const Text('Change Photo'),
-                        ),
-                      ],
-                    ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _addItem,
-                child: const Text('Submit'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter the amount';
+                }
+                if (int.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _ratingController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'Rating',
               ),
-            ],
-          ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a rating';
+                }
+                if (double.tryParse(value) == null) {
+                  return 'Please enter a valid rating';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            _image == null
+                ? ElevatedButton(
+                    onPressed: _pickImage,
+                    child: const Text('Add a Photo'),
+                  )
+                : Column(
+                    children: [
+                      Image.network(_image!.path, width: 100, height: 100, fit: BoxFit.cover),
+                      ElevatedButton(
+                        onPressed: _pickImage,
+                        child: const Text('Change Photo'),
+                      ),
+                    ],
+                  ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _addItem,
+              child: const Text('Submit'),
+            ),
+          ],
         ),
       ),
     );
