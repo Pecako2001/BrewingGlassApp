@@ -1,8 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:myapp/pages/add_item.dart'; // Ensure this import is correct
+import 'package:myapp/functions/add_item.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/functions/theme_provider.dart';
-import 'package:myapp/pages/item_repos.dart'; // Ensure this is added to your pubspec.yaml
+import 'package:myapp/functions/database_helper.dart';
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -13,16 +14,40 @@ class InventoryPage extends StatefulWidget {
 
 class _InventoryPageState extends State<InventoryPage> {
   List<Map<String, dynamic>> glasses = [];
+  String _sortCriterion = 'name';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchGlasses();
+  }
+
+  Future<void> _fetchGlasses() async {
+    final List<Map<String, dynamic>> fetchedGlasses = await DatabaseHelper.instance.getGlasses();
+    setState(() {
+      glasses = fetchedGlasses;
+    });
+  }
 
   void _addGlass(String name, String brewery, int amount, double rating) {
-    setState(() {
-      glasses.add({
-        'name': name,
-        'brewery': brewery,
-        'amount': amount,
-        'rating': rating,
-      });
-    });
+    _fetchGlasses(); // Refresh the list after adding a new glass
+  }
+
+  void _editGlass(int id, String name, String brewery, int amount, double rating) {
+    final glass = {
+      'id': id,
+      'name': name,
+      'brewery': brewery,
+      'amount': amount,
+      'rating': rating,
+    };
+    DatabaseHelper.instance.updateGlass(glass);
+    _fetchGlasses(); // Refresh the list after editing a glass
+  }
+
+  void _deleteGlass(int id) async {
+    await DatabaseHelper.instance.deleteGlass(id);
+    _fetchGlasses(); // Refresh the list after deleting a glass
   }
 
   void _openAddGlassSheet() {
@@ -37,8 +62,33 @@ class _InventoryPageState extends State<InventoryPage> {
     );
   }
 
+  void _openEditGlassSheet(Map<String, dynamic> glass) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return AddItemScreen(
+          addGlassCallback: (name, brewery, amount, rating) {
+            _editGlass(glass['id'], name, brewery, amount, rating);
+          },
+          existingGlass: glass,
+        );
+      },
+    );
+  }
+
+  void _sortGlasses(String criterion) {
+    setState(() {
+      _sortCriterion = criterion;
+      glasses.sort((a, b) => a[criterion].compareTo(b[criterion]));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final bool isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Wish List'),
@@ -69,43 +119,43 @@ class _InventoryPageState extends State<InventoryPage> {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Sort by brewery
+                      _sortGlasses('brewery');
                     },
                     icon: Icon(Icons.sort),
                     label: Text('Brewery'),
                     style: ElevatedButton.styleFrom(
                       shape: StadiumBorder(),
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
                     ),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Sort by style
+                      _sortGlasses('style');
                     },
                     icon: Icon(Icons.sort),
                     label: Text('Style'),
                     style: ElevatedButton.styleFrom(
                       shape: StadiumBorder(),
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
                     ),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Sort by country
+                      _sortGlasses('country');
                     },
                     icon: Icon(Icons.sort),
                     label: Text('Country'),
                     style: ElevatedButton.styleFrom(
                       shape: StadiumBorder(),
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
                     ),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
-                      // Sort
+                      _sortGlasses(_sortCriterion);
                     },
                     child: Text('Sort'),
                     style: ElevatedButton.styleFrom(
@@ -124,15 +174,22 @@ class _InventoryPageState extends State<InventoryPage> {
                 itemBuilder: (context, index) {
                   final glass = glasses[index];
                   return Card(
-                    color: Colors.grey[850],
+                    color: isDarkMode ? Colors.grey[850] : Colors.white,
                     child: ListTile(
-                      leading: Icon(Icons.local_drink, size: 40, color: Colors.white),
-                      title: Text(glass['name'], style: TextStyle(color: Colors.white)),
+                      leading: glass['image_path'] != null 
+                          ? Image.file(
+                              File(glass['image_path']),
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                          : Icon(Icons.local_drink, size: 40, color: isDarkMode ? Colors.white : Colors.black),
+                      title: Text(glass['name'], style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(glass['brewery'], style: TextStyle(color: Colors.white70)),
-                          Text('${glass['amount']} in stock', style: TextStyle(color: Colors.white70)),
+                          Text(glass['brewery'], style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87)),
+                          Text('${glass['amount']} glasses', style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87)),
                           Row(
                             children: List.generate(5, (starIndex) {
                               return Icon(
@@ -143,12 +200,16 @@ class _InventoryPageState extends State<InventoryPage> {
                           ),
                         ],
                       ),
-                      trailing: Icon(Icons.more_vert, color: Colors.white),
+                      trailing: IconButton(
+                        icon: Icon(Icons.edit, color: isDarkMode ? Colors.white : Colors.black),
+                        onPressed: () => _openEditGlassSheet(glass),
+                      ),
+                      onLongPress: () => _deleteGlass(glass['id']),
                     ),
                   );
                 },
               ),
-            ),
+            )
           ],
         ),
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/pages/add_item.dart';
-import 'package:myapp/pages/item_repos.dart';
+import 'package:myapp/functions/add_item.dart';
+import 'package:myapp/functions/item_repos.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -78,10 +78,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddItemScreen(
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => FractionallySizedBox(
+            heightFactor: 1,
+            child: AddItemScreen(
               addGlassCallback: _addGlass,
             ),
           ),

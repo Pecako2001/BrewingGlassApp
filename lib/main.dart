@@ -1,46 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:myapp/functions/theme_provider.dart';
+import 'functions/database_helper.dart';
 import 'pages/first_page.dart';
-import 'pages/home_page.dart';
-import 'pages/settings_page.dart';
-import 'pages/Inventorypage.dart';
-import 'pages/Favorites_page.dart';
+import 'functions/theme_provider.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
-      child: const MyApp(),
-    ),
-  );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseHelper.instance.db; // Ensure the database is initialized
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      themeMode: themeProvider.themeMode,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            theme: ThemeData.light(),
+            darkTheme: ThemeData.dark(),
+            themeMode: themeProvider.themeMode,
+            home: FirstPage(),
+          );
+        },
       ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-      ),
-      home: FirstPage(),
-      routes: {
-        '/firstpage': (context) => FirstPage(),
-        '/homepage': (context) => HomePage(),
-        '/settingspage': (context) => SettingsPage(),
-        '/inventorypage': (context) => InventoryPage(),
-        '/favoritespage': (context) => FavoritesPage(),
-      },
     );
   }
 }
