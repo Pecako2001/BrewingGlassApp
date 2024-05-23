@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/functions/theme_provider.dart';
+import 'package:myapp/functions/database_helper.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -16,18 +17,22 @@ class _SettingsPageState extends State<SettingsPage> {
     'French': 'assets/flags/france.png',
     'German': 'assets/flags/germany.png',
   };
-  int _totalGlasses = 0; // This should be fetched from your inventory
+  int _totalGlasses = 0;
+  int _uniqueGlasses = 0;
 
   @override
   void initState() {
     super.initState();
-    // Fetch the total glasses from your inventory
-    _totalGlasses = _fetchTotalGlasses();
+    _fetchGlassesData();
   }
 
-  int _fetchTotalGlasses() {
-    // Replace this with your actual logic to fetch total glasses
-    return 42;
+  Future<void> _fetchGlassesData() async {
+    final totalGlasses = await DatabaseHelper.instance.getTotalGlasses();
+    final uniqueGlasses = await DatabaseHelper.instance.getUniqueGlasses();
+    setState(() {
+      _totalGlasses = totalGlasses;
+      _uniqueGlasses = uniqueGlasses;
+    });
   }
 
   @override
@@ -44,7 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               CircleAvatar(
                 radius: 40,
-                backgroundImage: AssetImage('assets/profile/profile_picture.png'), // Replace with actual image
+                backgroundImage: AssetImage('assets/profile/profile_picture.png'),
               ),
               SizedBox(width: 16),
               Column(
@@ -71,13 +76,13 @@ class _SettingsPageState extends State<SettingsPage> {
               Column(
                 children: [
                   Text('TOTAL', style: TextStyle(color: Colors.grey)),
-                  Text('399', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('$_totalGlasses', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 ],
               ),
               Column(
                 children: [
                   Text('UNIQUE', style: TextStyle(color: Colors.grey)),
-                  Text('327', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('$_uniqueGlasses', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -93,6 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedLanguage = newValue!;
+                    _changeLanguage(newValue);
                   });
                 },
                 items: _languages.map<DropdownMenuItem<String>>((String value) {
@@ -137,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                Image.asset('assets/profile/sample_photo.jpg', width: 100, height: 100, fit: BoxFit.cover), // Replace with actual photos
+                Image.asset('assets/profile/sample_photo.jpg', width: 100, height: 100, fit: BoxFit.cover),
                 SizedBox(width: 10),
                 Image.asset('assets/profile/sample_photo.jpg', width: 100, height: 100, fit: BoxFit.cover),
                 SizedBox(width: 10),
@@ -159,7 +165,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 SizedBox(height: 10),
                 Container(
                   height: 100,
-                  color: Colors.blueGrey, // Placeholder for actual graph
+                  color: Colors.blueGrey,
                 ),
                 SizedBox(height: 10),
                 Text('3.59', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
@@ -170,5 +176,10 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+
+  void _changeLanguage(String language) {
+    // Implement the language change functionality here
+    // This can involve updating the app's locale or other necessary steps
   }
 }

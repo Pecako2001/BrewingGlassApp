@@ -38,6 +38,7 @@ class _FirstPageState extends State<FirstPage> {
       appBar: AppBar(
         title: const Center(child: Text("Unglassed")),
         backgroundColor: Color.fromRGBO(231, 162, 23, 1),
+        foregroundColor: Colors.black,
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

@@ -62,7 +62,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
       if (image != null) {
         // Resize the image
         final File file = File(image.path);
@@ -197,7 +197,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Check-in'),
+        title: const Text('Glass addition'),
         leading: IconButton(
           icon: Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),

@@ -30,7 +30,7 @@ class DatabaseHelper {
     String path = join(dir.path, 'glasses.db');
     final glassesDb = await openDatabase(
       path,
-      version: 2, // Update version number
+      version: 2,
       onCreate: _createDb,
       onUpgrade: _upgradeDb,
     );
@@ -54,7 +54,6 @@ class DatabaseHelper {
   Future<int> insertGlass(Map<String, dynamic> glass) async {
     Database? db = await this.db;
     final int result = await db!.insert(glassTable, glass);
-    print('Inserted glass: $glass'); // Debugging statement
     return result;
   }
 
@@ -66,7 +65,6 @@ class DatabaseHelper {
       where: '$colId = ?',
       whereArgs: [glass['id']],
     );
-    print('Updated glass: $glass'); // Debugging statement
     return result;
   }
 
@@ -83,11 +81,21 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getGlasses() async {
     Database? db = await this.db;
     final List<Map<String, dynamic>> result = await db!.query(glassTable);
-    print('Retrieved glasses: $result'); // Debugging statement
     return result;
   }
 
-  // Method to delete the database
+  Future<int> getTotalGlasses() async {
+    Database? db = await this.db;
+    var result = await db!.rawQuery('SELECT COUNT(*) FROM $glassTable');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> getUniqueGlasses() async {
+    Database? db = await this.db;
+    var result = await db!.rawQuery('SELECT COUNT(DISTINCT $colName) FROM $glassTable');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
   Future<void> deleteDatabaseFile() async {
     Directory dir = await getApplicationDocumentsDirectory();
     String path = join(dir.path, 'glasses.db');
